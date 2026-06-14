@@ -48,6 +48,9 @@ func _process(delta: float) -> void:
 				mejor = d
 				siguiente = enemigo
 		actual = siguiente
+	# Si no hubo cadena (boss aislado), descarga adicional al 50% en el objetivo original.
+	if golpeados.size() == 1 and is_instance_valid(golpeados[0]):
+		golpeados[0].recibir_dano(dano * 0.5)
 	Efectos.sonido(self, "golpe", -6.0)
 
 

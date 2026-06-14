@@ -15,12 +15,12 @@ const ProyectilScript := preload("res://scripts/proyectil.gd")
 const HojaStatsScript := preload("res://scripts/stats.gd")
 
 const CLASES := {
-	"guerrero": {"nombre": "Guerrero", "vida": 150.0, "velocidad": 5.0, "mult_dano": 1.0, "critico": 0.05, "regen": 0.0, "arma": "espada", "color": Color(0.85, 0.3, 0.25), "desc": "Espadón: tajo cuerpo a cuerpo · El más resistente"},
-	"arquero": {"nombre": "Arquero", "vida": 90.0, "velocidad": 5.5, "mult_dano": 1.0, "critico": 0.1, "regen": 0.0, "arma": "arco", "color": Color(0.3, 0.7, 0.35), "desc": "Arco: flechas veloces al cursor"},
-	"mago": {"nombre": "Mago", "vida": 80.0, "velocidad": 5.0, "mult_dano": 1.25, "critico": 0.05, "regen": 0.0, "arma": "fuego", "color": Color(0.35, 0.45, 0.95), "desc": "Bastón: orbes arcanos explosivos · +25% daño"},
-	"nigromante": {"nombre": "Nigromante", "vida": 90.0, "velocidad": 5.0, "mult_dano": 1.0, "critico": 0.05, "regen": 0.0, "arma": "espada", "color": Color(0.5, 0.3, 0.6), "desc": "Báculo de sombras · Los caídos pueden alzarse"},
-	"asesino": {"nombre": "Asesino", "vida": 75.0, "velocidad": 6.2, "mult_dano": 1.0, "critico": 0.3, "regen": 0.0, "arma": "arco", "color": Color(0.4, 0.4, 0.45), "desc": "Dagas: lanzamiento rapidísimo · 30% crítico"},
-	"paladin": {"nombre": "Paladín", "vida": 130.0, "velocidad": 4.6, "mult_dano": 1.0, "critico": 0.05, "regen": 2.0, "arma": "espada", "color": Color(0.9, 0.85, 0.5), "desc": "Martillo: golpe con empuje · Regenera vida"},
+	"guerrero":   {"nombre": "Guerrero",   "vida": 130.0, "velocidad": 5.0,  "mult_dano": 1.15, "critico": 0.05, "mult_critico": 1.8, "regen": 0.0, "arma": "espada", "color": Color(0.85, 0.3, 0.25), "desc": "Espadón: tajo cuerpo a cuerpo · +15% daño"},
+	"arquero":    {"nombre": "Arquero",    "vida": 80.0,  "velocidad": 5.8,  "mult_dano": 1.1,  "critico": 0.08, "mult_critico": 1.8, "regen": 0.0, "arma": "arco",   "color": Color(0.3, 0.7, 0.35),  "desc": "Arco: flechas automáticas al más cercano · 8% crítico"},
+	"mago":       {"nombre": "Mago",       "vida": 75.0,  "velocidad": 5.0,  "mult_dano": 1.35, "critico": 0.05, "mult_critico": 1.8, "regen": 0.0, "arma": "fuego",  "color": Color(0.35, 0.45, 0.95),"desc": "Bastón: orbes arcanos explosivos · +35% daño"},
+	"nigromante": {"nombre": "Nigromante", "vida": 95.0,  "velocidad": 5.0,  "mult_dano": 1.05, "critico": 0.05, "mult_critico": 1.8, "regen": 2.0, "arma": "espada", "color": Color(0.5, 0.3, 0.6),  "desc": "Báculo de sombras · Invoca aliados · Regenera 2/s"},
+	"asesino":    {"nombre": "Asesino",    "vida": 65.0,  "velocidad": 6.5,  "mult_dano": 1.0,  "critico": 0.35, "mult_critico": 2.5, "regen": 0.0, "arma": "arco",   "color": Color(0.4, 0.4, 0.45), "desc": "Dagas: lanzamiento rapidísimo · 35% crítico x2.5"},
+	"paladin":    {"nombre": "Paladín",    "vida": 145.0, "velocidad": 4.6,  "mult_dano": 0.9,  "critico": 0.04, "mult_critico": 1.8, "regen": 3.5, "arma": "espada", "color": Color(0.9, 0.85, 0.5), "desc": "Martillo: golpe con empuje · Regenera 3.5 vida/s"},
 }
 
 ## Modelos 3D riggeados (KayKit, CC0) por clase, con su animación de ataque.
@@ -86,12 +86,12 @@ const HABILIDADES := {
 
 ## Ataque primario por clase (automático: apunta al enemigo más cercano).
 const ATAQUES := {
-	"guerrero": {"tipo": "melee", "cadencia": 0.5, "dano": 22.0, "por_nivel": 7.0, "radio": 2.6},
-	"paladin": {"tipo": "melee", "cadencia": 0.8, "dano": 28.0, "por_nivel": 8.0, "radio": 2.3, "empuje": 6.0},
-	"arquero": {"tipo": "flecha", "cadencia": 0.28, "dano": 13.0, "por_nivel": 5.0, "vel": 26.0},
-	"asesino": {"tipo": "daga", "cadencia": 0.22, "dano": 9.0, "por_nivel": 4.0, "vel": 24.0},
-	"mago": {"tipo": "orbe", "cadencia": 0.5, "dano": 18.0, "por_nivel": 6.0, "vel": 16.0, "aoe": 1.1},
-	"nigromante": {"tipo": "sombra", "cadencia": 0.4, "dano": 14.0, "por_nivel": 5.0, "vel": 18.0},
+	"guerrero":   {"tipo": "melee",  "cadencia": 0.45, "dano": 26.0, "por_nivel": 8.0, "radio": 2.8},
+	"paladin":    {"tipo": "melee",  "cadencia": 0.8,  "dano": 32.0, "por_nivel": 8.0, "radio": 2.5, "empuje": 9.0},
+	"arquero":    {"tipo": "flecha", "cadencia": 0.25, "dano": 15.0, "por_nivel": 5.0, "vel": 28.0},
+	"asesino":    {"tipo": "daga",   "cadencia": 0.18, "dano": 8.0,  "por_nivel": 4.0, "vel": 26.0},
+	"mago":       {"tipo": "orbe",   "cadencia": 0.5,  "dano": 20.0, "por_nivel": 6.0, "vel": 16.0, "aoe": 1.2},
+	"nigromante": {"tipo": "sombra", "cadencia": 0.4,  "dano": 16.0, "por_nivel": 6.0, "vel": 18.0},
 }
 
 var clase := "guerrero"
@@ -100,6 +100,7 @@ var vida := 120.0
 var radio_iman := 3.5
 var mult_xp := 1.0
 var vel_proyectil_mult := 1.0
+var mult_critico := 1.8
 
 # Propiedades legacy sobre la hoja: main.gd y las armas siguen funcionando.
 var vida_max: float:
@@ -119,7 +120,7 @@ var regen: float:
 	set(v): stats.regen = v
 var nivel := 1
 var xp := 0.0
-var xp_necesaria := 14.0
+var xp_necesaria := 20.0
 var limite_mapa := 70.0
 
 # Disparo automático: apunta al enemigo más cercano cada vez que el cooldown está listo
@@ -201,6 +202,7 @@ func _aplicar_clase() -> void:
 	stats.dano_pct = (datos.mult_dano - 1.0) * 100.0
 	stats.critico_pct = datos.critico * 100.0
 	stats.regen = datos.regen
+	mult_critico = datos.get("mult_critico", 1.8)
 	cadencia_disparo = ATAQUES[clase].cadencia
 	if clase == "arquero":
 		vel_proyectil_mult = 1.3
@@ -637,7 +639,7 @@ func _hab_meteoro(nv: int) -> void:
 
 
 func _hab_legion(nv: int) -> void:
-	invoco_aliados.emit(2 + nv / 2)
+	invoco_aliados.emit(2 + nv)
 	var radio := 4.5 + 0.3 * nv
 	var dano := calcular_dano(20.0 + 8.0 * nv)
 	for enemigo in get_tree().get_nodes_in_group("enemigos"):
@@ -753,7 +755,7 @@ func _hab_golpe_sombra(nv: int) -> void:
 	dir.y = 0.0
 	global_position = objetivo.global_position - dir.normalized() * 1.1
 	_invulnerable = maxf(_invulnerable, 0.45)
-	objetivo.recibir_dano((25.0 + 10.0 * nv) * mult_dano * 3.0)
+	objetivo.recibir_dano(calcular_dano(25.0 + 10.0 * nv) * 3.0)
 	Efectos.explosion_grande(get_tree().current_scene, objetivo.global_position + Vector3.UP * 0.6, Color(0.5, 0.3, 0.7))
 	Efectos.sonido(self, "golpe", 0.0)
 	_sacudir(0.2)
@@ -905,7 +907,7 @@ func _ataque_proyectil(direccion: Vector3, datos: Dictionary) -> void:
 			proyectil = _proyectil_flecha()
 		"daga":
 			proyectil = _proyectil_daga()
-			proyectil.veneno_dps = 3.0 * nivel_habilidad("venenos")
+			proyectil.veneno_dps = 5.0 * nivel_habilidad("venenos")
 		"orbe":
 			proyectil = _crear_proyectil(Color(0.6, 0.4, 1.0), 0.22)
 			proyectil.radio_explosion = datos.aoe
@@ -1108,8 +1110,7 @@ func ganar_xp(cantidad: float) -> void:
 	while xp >= xp_necesaria:
 		xp -= xp_necesaria
 		nivel += 1
-		# Curva ~40% más lenta: subir de nivel debe sentirse ganado
-		xp_necesaria = 14.0 + 10.0 * (nivel - 1)
+		xp_necesaria = 5.0 + 15.0 * nivel
 		subio_nivel.emit(nivel)
 	xp_cambiada.emit(xp, xp_necesaria, nivel)
 
@@ -1121,7 +1122,7 @@ func calcular_dano(base: float, tipo := "global") -> float:
 	if _rey_t > 0.0:
 		dano *= 1.8
 	if randf() < prob_critico:
-		dano *= 2.0
+		dano *= mult_critico
 		if nivel_habilidad("sed_sangre") > 0 and vida > 0.0:
 			curar(2.0 * nivel_habilidad("sed_sangre"))
 	return dano

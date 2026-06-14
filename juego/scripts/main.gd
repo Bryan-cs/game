@@ -1,4 +1,4 @@
-extends Node3D
+﻿extends Node3D
 ## Nightfall Survivors — director de partida del MVP (GDD v1.0).
 ## Mapa: Bosque Maldito. Jefe: Gigante Putrefacto a los 5 minutos.
 
@@ -51,7 +51,6 @@ var tiempo := 0.0
 var kills := 0
 var oro_partida := 0
 var jefe: Node3D = null
-var jefe_invocado := false
 var nivel_actual := 0
 var _jefe_disparado := false
 var partida_activa := false
@@ -67,10 +66,10 @@ var armas := {}
 var _mult_vel_evento := 1.0
 var _prob_oro := 0.25
 var _sinergias_activas := {}
-var _mult_vel_enemigos := 1.0
 var _entorno: Environment
 var _luz: DirectionalLight3D
 var _spawner: Timer
+var _temporizador_eventos: Timer
 var _luciernagas: GPUParticles3D
 var _opciones_actuales: Array = []
 var _capa_game_over: CanvasLayer
@@ -482,11 +481,11 @@ func _crear_spawner() -> void:
 	_spawner.autostart = true
 	_spawner.timeout.connect(_spawn_continuo)
 	add_child(_spawner)
-	var temporizador_eventos := Timer.new()
-	temporizador_eventos.wait_time = 75.0
-	temporizador_eventos.autostart = true
-	temporizador_eventos.timeout.connect(_evento_aleatorio)
-	add_child(temporizador_eventos)
+	_temporizador_eventos = Timer.new()
+	_temporizador_eventos.wait_time = 75.0
+	_temporizador_eventos.autostart = true
+	_temporizador_eventos.timeout.connect(_evento_aleatorio)
+	add_child(_temporizador_eventos)
 	var temporizador_ayudas := Timer.new()
 	temporizador_ayudas.wait_time = 25.0
 	temporizador_ayudas.autostart = true
@@ -602,7 +601,7 @@ func _generar_opciones(cantidad := 3) -> Array:
 	pool.append({"id": "velocidad", "titulo": "Ligereza", "desc": "+velocidad de movimiento"})
 	pool.append({"id": "dano", "titulo": "Furia", "desc": "+daño global"})
 	pool.append({"id": "iman", "titulo": "Imán", "desc": "+radio de recolección"})
-	pool.append({"id": "pacto", "titulo": "Pacto Oscuro", "desc": "+12% daño global… y +15 de corrupción"})
+	pool.append({"id": "pacto", "titulo": "Pacto Oscuro", "desc": "+daño global (escala con rareza) · +15 corrupción (reduce curación)"})
 	# Cada habilidad tiene su propio slot (E/R): ambas activas se pueden aprender
 	var max_nv_activas := 0
 	for hab in Jugador.HABILIDADES[clase_jugador]:
@@ -796,7 +795,6 @@ func _generar_enemigo(tipo: String, forzar_elite := false) -> Node3D:
 	if minutos >= 5.0:
 		enemigo.dano *= 1.25
 		enemigo.velocidad *= 1.15
-	enemigo.velocidad *= _mult_vel_enemigos
 	enemigo.mult_evento = _mult_vel_evento
 	enemigo.murio.connect(_al_morir_enemigo)
 	add_child(enemigo)
@@ -816,6 +814,12 @@ func _invocar_jefe_nivel() -> void:
 
 func _invocar_jefe(tipo: String) -> void:
 	jefe = _generar_enemigo(tipo)
+	# Coeficiente propio (35%) para que bosses no sean esponjas en late.
+	var escala_jefe := 1.0 + (NivelesScript.escala(nivel_actual) - 1.0) * 0.35
+	var datos_jefe: Dictionary = EnemigoScript.TIPOS[tipo]
+	jefe.vida_max = datos_jefe.vida * escala_jefe
+	jefe.vida = jefe.vida_max
+	jefe.dano = datos_jefe.dano * (1.0 + (escala_jefe - 1.0) * 0.5)
 	jefe.pide_esbirros.connect(_al_pedir_esbirros)
 	hud.mostrar_jefe(NOMBRES_JEFES.get(tipo, "JEFE"))
 	hud.anunciar(NOMBRES_JEFES.get(tipo, "JEFE"), Color(1.0, 0.25, 0.2))
@@ -838,6 +842,8 @@ func _al_morir_enemigo(enemigo: Node) -> void:
 	_estado.evento("kills")
 	if enemigo.es_jefe:
 		_estado.evento("jefes")
+		if enemigo.tipo == "rey_vacio":
+			_estado.evento("jefes_rey_vacio")
 	var pos: Vector3 = enemigo.global_position
 	var color: Color = EnemigoScript.TIPOS[enemigo.tipo]["color"]
 	Efectos.explosion(self, pos, color, 20, 2.0 if enemigo.es_jefe else 1.0)
@@ -845,6 +851,17 @@ func _al_morir_enemigo(enemigo: Node) -> void:
 	if clase_jugador == "nigromante" and randf() < 0.10:
 		_invocar_aliado(pos)
 	_soltar_gema(pos, enemigo.xp)
+	# Oro de la run: boss siempre, elite garantizado, normal probabilístico.
+	var oro_drop := 0
+	if enemigo.es_jefe:
+		oro_drop = 20
+	elif enemigo.es_elite:
+		oro_drop = 5
+	elif randf() < _prob_oro:
+		oro_drop = 2
+	if oro_drop > 0:
+		oro_partida += oro_drop
+		hud.actualizar_oro(oro_partida)
 	if enemigo.es_jefe:
 		# Recompensa de jefe: cofre (mejora). Almas-de-run eliminadas en Capa N1.
 		_soltar_cofre(pos)
@@ -926,22 +943,26 @@ func _al_abrir_cofre() -> void:
 func _evento_aleatorio() -> void:
 	if not partida_activa or get_tree().paused:
 		return
+	_temporizador_eventos.wait_time = maxf(55.0, 75.0 - float(nivel_actual) * 0.4)
 	match ["lluvia_sangre", "invasion_elite", "altar_maldito", "eclipse"].pick_random():
 		"lluvia_sangre":
-			hud.anunciar("LLUVIA DE SANGRE", Color(1.0, 0.2, 0.2))
+			hud.anunciar("LLUVIA DE SANGRE — horda acelerada", Color(1.0, 0.2, 0.2))
 			_mult_vel_evento = 1.4
 			_prob_oro = 0.6
 			get_tree().call_group("enemigos", "set", "mult_evento", 1.4)
 			_temporizar(20.0, _fin_evento_velocidad)
 		"invasion_elite":
 			hud.anunciar("INVASIÓN ÉLITE", Color(1.0, 0.7, 0.2))
-			for i in 6:
+			var cantidad_elites := maxi(3, 3 + nivel_actual / 10)
+			if is_instance_valid(jefe):
+				cantidad_elites = mini(cantidad_elites, 3)
+			for i in cantidad_elites:
 				_generar_enemigo(_tipo_aleatorio(), true)
 		"altar_maldito":
 			hud.anunciar("UN ALTAR MALDITO EMERGE", Color(0.8, 0.3, 1.0))
 			_soltar_altar()
 		"eclipse":
-			hud.anunciar("ECLIPSE", Color(0.6, 0.6, 0.9))
+			hud.anunciar("ECLIPSE — horda ralentizada", Color(0.6, 0.6, 0.9))
 			_entorno.fog_density = 0.06
 			_mult_vel_evento = 0.7
 			get_tree().call_group("enemigos", "set", "mult_evento", 0.7)
@@ -986,6 +1007,7 @@ func _al_tocar_altar() -> void:
 	jugador.anadir_corrupcion(20.0)
 	hud.anunciar("PODER A CAMBIO DE CORRUPCIÓN", Color(0.8, 0.3, 1.0))
 	mejoras_pendientes += 1
+	_mostrar_mejoras_si_toca()
 
 
 # --- Pausa y fin de partida -------------------------------------------------
@@ -1179,7 +1201,7 @@ func _crear_game_over() -> void:
 
 func _refrescar_game_over() -> void:
 	var s := int(tiempo)
-	_go_stats.text = "Sobreviviste %02d:%02d  ·  Bajas: %d  ·  Almas: %d" % [s / 60, s % 60, kills, oro_partida]
+	_go_stats.text = "Sobreviviste %02d:%02d  ·  Bajas: %d  ·  Oro: %d" % [s / 60, s % 60, kills, oro_partida]
 	_go_oro_total.text = "Oro total: %d" % _estado.oro_total
 	for clave in _go_botones_talentos:
 		var boton: Button = _go_botones_talentos[clave]
@@ -1197,5 +1219,10 @@ func _comprar_talento(clave: String) -> void:
 
 
 func _reiniciar() -> void:
+	if oro_partida > 0 and partida_activa:
+		_estado.oro_total += oro_partida
+		_estado.pase_xp += oro_partida
+		_estado.evento("oro_ganado", oro_partida)
+		_estado.guardar()
 	get_tree().paused = false
 	get_tree().reload_current_scene()

@@ -22,7 +22,7 @@ ClaudeRuntime="*res://addons/claude_bridge/runtime_agent.gd"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/claude_bridge/plugin.cfg")
+enabled=PackedStringArray("res://addons/claude_bridge/plugin.cfg", "res://addons/godot_mcp_server/plugin.cfg")
 
 [input]
 

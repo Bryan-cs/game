@@ -39,4 +39,4 @@ func _process(delta: float) -> void:
 		if evolucionada:
 			base *= 1.4
 		proyectil.dano = jugador.calcular_dano(base, "distancia")
-		proyectil.radio_explosion = (2.2 + 0.3 * nivel) * (1.5 if evolucionada else 1.0) * (1.3 if sinergia_plasma else 1.0)
+		proyectil.radio_explosion = (2.2 + 0.2 * nivel) * (1.5 if evolucionada else 1.0) * (1.3 if sinergia_plasma else 1.0)

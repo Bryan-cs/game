@@ -8,7 +8,6 @@ var etiqueta_vida: Label
 var barra_xp: ProgressBar
 var etiqueta_nivel: Label
 var etiqueta_tiempo: Label
-var etiqueta_oro: Label
 var etiqueta_kills: Label
 var barra_jefe: ProgressBar
 var etiqueta_jefe: Label
@@ -20,8 +19,8 @@ var barra_hab2: ProgressBar
 var _texto_hab1: Label
 var _texto_hab2: Label
 var barra_corrupcion: ProgressBar
+var etiqueta_oro: Label
 var etiqueta_anuncio: Label
-var etiqueta_oleada: Label
 
 
 func _ready() -> void:
@@ -87,25 +86,18 @@ func _construir() -> void:
 	etiqueta_tiempo.offset_left = -50.0
 	etiqueta_tiempo.offset_top = 34.0
 
-	etiqueta_oleada = _crear_etiqueta("Oleada 1", 16)
-	etiqueta_oleada.anchor_left = 0.5
-	etiqueta_oleada.anchor_right = 0.5
-	etiqueta_oleada.offset_left = -45.0
-	etiqueta_oleada.offset_top = 68.0
-	etiqueta_oleada.add_theme_color_override("font_color", Color(0.8, 0.75, 0.95))
-
-	etiqueta_oro = _crear_etiqueta("Almas: 0", 18)
-	etiqueta_oro.anchor_left = 1.0
-	etiqueta_oro.anchor_right = 1.0
-	etiqueta_oro.offset_left = -180.0
-	etiqueta_oro.offset_top = 34.0
-	etiqueta_oro.add_theme_color_override("font_color", Color(0.7, 0.5, 1.0))
-
 	etiqueta_kills = _crear_etiqueta("Bajas: 0", 18)
 	etiqueta_kills.anchor_left = 1.0
 	etiqueta_kills.anchor_right = 1.0
 	etiqueta_kills.offset_left = -180.0
 	etiqueta_kills.offset_top = 62.0
+
+	etiqueta_oro = _crear_etiqueta("Oro: 0", 18)
+	etiqueta_oro.anchor_left = 1.0
+	etiqueta_oro.anchor_right = 1.0
+	etiqueta_oro.offset_left = -180.0
+	etiqueta_oro.offset_top = 84.0
+	etiqueta_oro.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
 
 	etiqueta_jefe = _crear_etiqueta("GIGANTE PUTREFACTO", 20)
 	etiqueta_jefe.anchor_left = 0.5
@@ -245,13 +237,6 @@ func configurar_habilidad(slot: int, texto: String) -> void:
 		barra_hab2.visible = true
 
 
-func actualizar_oleada(oleada: int, vivos := -1, total := -1) -> void:
-	if vivos < 0 or total <= 0:
-		etiqueta_oleada.text = "Oleada %d" % oleada
-	else:
-		etiqueta_oleada.text = "Oleada %d · %d/%d" % [oleada, vivos, total]
-
-
 func actualizar_corrupcion(valor: float) -> void:
 	barra_corrupcion.value = valor
 
@@ -282,19 +267,12 @@ func actualizar_tiempo(segundos: float) -> void:
 	etiqueta_tiempo.text = "%02d:%02d" % [s / 60, s % 60]
 
 
-func actualizar_timer_oleada(segundos: float) -> void:
-	if segundos < 0.0:
-		etiqueta_tiempo.text = "☠ JEFE"
-		return
-	etiqueta_tiempo.text = "%d" % int(ceil(segundos))
-
-
-func actualizar_oro(oro: int) -> void:
-	etiqueta_oro.text = "Almas: %d" % oro
-
-
 func actualizar_kills(kills: int) -> void:
 	etiqueta_kills.text = "Bajas: %d" % kills
+
+
+func actualizar_oro(cantidad: int) -> void:
+	etiqueta_oro.text = "Oro: %d" % cantidad
 
 
 func mostrar_jefe(nombre: String) -> void:

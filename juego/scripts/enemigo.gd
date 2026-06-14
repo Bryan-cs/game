@@ -6,20 +6,20 @@ signal murio(enemigo: Node)
 signal pide_esbirros(pos: Vector3, cantidad: int)
 
 const TIPOS := {
-	"zombie": {"vida": 30.0, "velocidad": 2.0, "dano": 8.0, "xp": 1.0, "color": Color(0.35, 0.6, 0.3), "escala": 1.0,
+	"zombie": {"vida": 30.0, "velocidad": 2.0, "dano": 8.0, "xp": 3.0, "color": Color(0.35, 0.6, 0.3), "escala": 1.0,
 		"modelo": "res://art/models/skeletons/Skeleton_Rogue.glb", "escala_modelo": 0.62},
-	"esqueleto": {"vida": 20.0, "velocidad": 3.2, "dano": 6.0, "xp": 1.0, "color": Color(0.9, 0.9, 0.85), "escala": 0.9,
+	"esqueleto": {"vida": 20.0, "velocidad": 3.2, "dano": 6.0, "xp": 2.0, "color": Color(0.9, 0.9, 0.85), "escala": 0.9,
 		"modelo": "res://art/models/skeletons/Skeleton_Minion.glb", "escala_modelo": 0.6},
-	"arana_gigante": {"vida": 15.0, "velocidad": 4.2, "dano": 5.0, "xp": 2.0, "color": Color(0.35, 0.18, 0.45), "escala": 0.7},
-	"demonio_menor": {"vida": 55.0, "velocidad": 2.6, "dano": 12.0, "xp": 3.0, "color": Color(0.75, 0.2, 0.15), "escala": 1.1,
+	"arana_gigante": {"vida": 15.0, "velocidad": 4.2, "dano": 5.0, "xp": 5.0, "color": Color(0.35, 0.18, 0.45), "escala": 0.7},
+	"demonio_menor": {"vida": 55.0, "velocidad": 2.6, "dano": 12.0, "xp": 10.0, "color": Color(0.75, 0.2, 0.15), "escala": 1.1,
 		"modelo": "res://art/models/skeletons/Skeleton_Mage.glb", "escala_modelo": 0.78},
-	"caballero_oscuro": {"vida": 130.0, "velocidad": 1.8, "dano": 18.0, "xp": 5.0, "color": Color(0.22, 0.22, 0.3), "escala": 1.25,
+	"caballero_oscuro": {"vida": 130.0, "velocidad": 1.8, "dano": 18.0, "xp": 18.0, "color": Color(0.22, 0.22, 0.3), "escala": 1.25,
 		"modelo": "res://art/models/skeletons/Skeleton_Warrior.glb", "escala_modelo": 0.8},
-	"gigante_putrefacto": {"vida": 1600.0, "velocidad": 1.6, "dano": 30.0, "xp": 50.0, "color": Color(0.45, 0.55, 0.25), "escala": 3.0,
+	"gigante_putrefacto": {"vida": 2400.0, "velocidad": 1.6, "dano": 35.0, "xp": 80.0, "color": Color(0.45, 0.55, 0.25), "escala": 3.0,
 		"modelo": "res://art/models/skeletons/Skeleton_Warrior.glb", "escala_modelo": 2.2},
-	"senor_sombras": {"vida": 3200.0, "velocidad": 2.2, "dano": 35.0, "xp": 90.0, "color": Color(0.3, 0.2, 0.45), "escala": 2.6,
+	"senor_sombras": {"vida": 6800.0, "velocidad": 2.2, "dano": 45.0, "xp": 150.0, "color": Color(0.3, 0.2, 0.45), "escala": 2.6,
 		"modelo": "res://art/models/skeletons/Skeleton_Rogue.glb", "escala_modelo": 2.0},
-	"rey_vacio": {"vida": 5200.0, "velocidad": 1.4, "dano": 40.0, "xp": 150.0, "color": Color(0.4, 0.2, 0.6), "escala": 3.2,
+	"rey_vacio": {"vida": 12000.0, "velocidad": 1.4, "dano": 55.0, "xp": 240.0, "color": Color(0.4, 0.2, 0.6), "escala": 3.2,
 		"modelo": "res://art/models/skeletons/Skeleton_Mage.glb", "escala_modelo": 2.4},
 }
 

@@ -2,9 +2,9 @@ extends CharacterBody3D
 ## Esqueleto aliado del Nigromante: persigue al enemigo más cercano y golpea.
 ## Con "Huesos Fríos" explota al expirar.
 
-var dano := 10.0
+var dano := 15.0
 var velocidad := 3.5
-var vida_util := 12.0
+var vida_util := 18.0
 var explosion_dano := 0.0
 
 var _cd_golpe := 0.0

@@ -46,8 +46,13 @@ static func jefe(indice: int) -> String:
 
 
 static func escala(indice: int) -> float:
-	# Dificultad/monstruos crecen de forma monótona con el nivel.
-	return 1.0 + indice * 0.10
+	# Piecewise: early aliviado, pivote igual en 40, late más exigente.
+	if indice <= 20:
+		return 1.0 + indice * 0.08            # 1.0 → 2.6
+	elif indice <= 40:
+		return 2.6 + (indice - 20) * 0.12     # 2.6 → 5.0
+	else:
+		return 5.0 + (indice - 40) * 0.15     # 5.0 → 7.85
 
 
 static func segundos_jefe(indice: int) -> float:

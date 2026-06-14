@@ -85,7 +85,7 @@ var pase_xp := 0
 var pase_reclamados: Array = []
 
 # --- Estadísticas, logros y misiones (sec. 19) --------------------------------
-var stats := {"kills": 0, "jefes": 0, "partidas": 0, "oleada_max": 0, "nivel_max": 0, "oro_ganado": 0, "muertes": 0, "victorias": 0}
+var stats := {"kills": 0, "jefes": 0, "jefes_rey_vacio": 0, "partidas": 0, "oleada_max": 0, "nivel_max": 0, "oro_ganado": 0, "muertes": 0, "victorias": 0}
 var stats_dia := {}
 
 const LOGROS := {
@@ -94,11 +94,11 @@ const LOGROS := {
 	"exterminador": {"nombre": "Exterminador", "desc": "1000 bajas totales", "stat": "kills", "meta": 1000, "oro": 500},
 	"matajefes": {"nombre": "Matajefes", "desc": "Derrota un jefe", "stat": "jefes", "meta": 1, "oro": 200},
 	"veterano": {"nombre": "Veterano", "desc": "10 partidas jugadas", "stat": "partidas", "meta": 10, "oro": 150},
-	"marea": {"nombre": "Contra la Marea", "desc": "Alcanza la oleada 10", "stat": "oleada_max", "meta": 10, "oro": 250},
+	"marea": {"nombre": "Contra la Marea", "desc": "Alcanza el nivel 10 en una partida", "stat": "nivel_max", "meta": 10, "oro": 250},
 	"ascendido": {"nombre": "Ascendido", "desc": "Nivel 15 en una partida", "stat": "nivel_max", "meta": 15, "oro": 200},
 	"incansable": {"nombre": "Incansable", "desc": "Cae 10 veces", "stat": "muertes", "meta": 10, "oro": 100},
 	"ricachon": {"nombre": "Ricachón", "desc": "Acumula 2000 oro ganado", "stat": "oro_ganado", "meta": 2000, "oro": 300},
-	"conquistador": {"nombre": "Conquistador de la Noche", "desc": "Derrota al Rey del Vacío (victoria)", "stat": "victorias", "meta": 1, "oro": 500},
+	"conquistador": {"nombre": "Conquistador de la Noche", "desc": "Derrota al Rey del Vacío (victoria)", "stat": "jefes_rey_vacio", "meta": 1, "oro": 500},
 }
 var logros_completados: Array = []
 
@@ -106,7 +106,7 @@ const PLANTILLAS_MISIONES := [
 	{"id": "m_kills80", "nombre": "Exterminio", "desc": "Mata 80 enemigos hoy", "stat": "kills", "meta": 80, "oro": 60},
 	{"id": "m_kills150", "nombre": "Masacre", "desc": "Mata 150 enemigos hoy", "stat": "kills", "meta": 150, "oro": 110},
 	{"id": "m_jefe", "nombre": "Caza Mayor", "desc": "Derrota 1 jefe hoy", "stat": "jefes", "meta": 1, "oro": 150},
-	{"id": "m_oleada6", "nombre": "Resistencia", "desc": "Alcanza la oleada 6 hoy", "stat": "oleada_max", "meta": 6, "oro": 80},
+	{"id": "m_oleada6", "nombre": "Resistencia", "desc": "Alcanza el nivel 6 en una partida hoy", "stat": "nivel_max", "meta": 6, "oro": 80},
 	{"id": "m_nivel8", "nombre": "Crecimiento", "desc": "Llega a nivel 8 en una partida", "stat": "nivel_max", "meta": 8, "oro": 70},
 	{"id": "m_oro100", "nombre": "Botín", "desc": "Gana 100 de oro hoy", "stat": "oro_ganado", "meta": 100, "oro": 80},
 	{"id": "m_partidas2", "nombre": "Doble Turno", "desc": "Juega 2 partidas hoy", "stat": "partidas", "meta": 2, "oro": 50},
@@ -128,12 +128,15 @@ func aplicar_pantalla() -> void:
 
 # --- Talentos ------------------------------------------------------------------
 
-const TALENTO_MAX := 10
+const TALENTO_MAX := 5
+const _COSTOS_TALENTO := [40, 65, 100, 150, 200]
 
 
 func costo_talento(clave: String) -> int:
-	# Curva exponencial: nv0=50 … nv9≈2.600 (≈7.700 de oro por talento completo)
-	return int(50.0 * pow(1.55, int(talentos.get(clave, 0))))
+	var nv := int(talentos.get(clave, 0))
+	if nv >= TALENTO_MAX:
+		return 0
+	return _COSTOS_TALENTO[nv]
 
 
 func comprar_talento(clave: String) -> bool:
