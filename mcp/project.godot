@@ -1,0 +1,6 @@
+; project.godot mínimo para validar scripts del addon con Godot headless
+config_version=5
+
+[application]
+
+config/name="godot-claude-mcp-dev"

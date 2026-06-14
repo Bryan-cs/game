@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://dgo0dvqdht88w"]
+
+[ext_resource type="Script" uid="uid://cdqe4qvhmbk4b" path="res://tools/test_jefes.gd" id="1_ob5vw"]
+
+[node name="TestJefes" type="Node" unique_id=1960461408]
+script = ExtResource("1_ob5vw")

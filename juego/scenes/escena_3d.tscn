@@ -1,0 +1,52 @@
+[gd_scene format=3 uid="uid://b3ujlpq7chn4u"]
+
+[ext_resource type="Script" uid="uid://cs7dtes1py0ut" path="res://scripts/personaje.gd" id="1_oqqkv"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_y1cfv"]
+albedo_color = Color(0.2901961, 0.4862745, 0.34901962, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_oqqkv"]
+material = SubResource("StandardMaterial3D_y1cfv")
+size = Vector3(20, 0.5, 20)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_4fvrs"]
+size = Vector3(20, 0.5, 20)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_c1d1c"]
+albedo_color = Color(0.8784314, 0.32156864, 0.32156864, 1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_aur1m"]
+material = SubResource("StandardMaterial3D_c1d1c")
+radius = 0.4
+height = 1.8
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_iqpwj"]
+radius = 0.4
+height = 1.8
+
+[node name="Escena3D" type="Node3D" unique_id=1855798617]
+
+[node name="Luz" type="DirectionalLight3D" parent="." unique_id=612544240]
+transform = Transform3D(0.8660254, 0.35355338, -0.35355338, 0, 0.70710677, 0.70710677, 0.5, -0.6123724, 0.6123724, 0, 0, 0)
+shadow_enabled = true
+
+[node name="Camara" type="Camera3D" parent="." unique_id=2100384584]
+transform = Transform3D(1, 0, 0, 0, 0.90630776, 0.42261827, 0, -0.42261827, 0.90630776, 0, 5, 8)
+
+[node name="Suelo" type="StaticBody3D" parent="." unique_id=1040372404]
+
+[node name="MeshSuelo" type="MeshInstance3D" parent="Suelo" unique_id=609753248]
+mesh = SubResource("BoxMesh_oqqkv")
+
+[node name="ColisionSuelo" type="CollisionShape3D" parent="Suelo" unique_id=451792678]
+shape = SubResource("BoxShape3D_4fvrs")
+
+[node name="Personaje" type="CharacterBody3D" parent="." unique_id=35196805]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
+script = ExtResource("1_oqqkv")
+
+[node name="MeshPersonaje" type="MeshInstance3D" parent="Personaje" unique_id=1162409290]
+mesh = SubResource("CapsuleMesh_aur1m")
+
+[node name="ColisionPersonaje" type="CollisionShape3D" parent="Personaje" unique_id=1755949668]
+shape = SubResource("CapsuleShape3D_iqpwj")

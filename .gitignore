@@ -1,0 +1,9 @@
+# Godot
+.godot/
+/juego/android/
+
+# Node
+mcp/server/node_modules/
+
+# Logs / temp
+*.log

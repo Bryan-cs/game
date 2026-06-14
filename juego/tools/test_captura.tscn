@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://bhajj1mu0bmrk"]
+
+[ext_resource type="Script" uid="uid://wj5bgm448581" path="res://tools/test_captura.gd" id="1_h63fu"]
+
+[node name="TestCaptura" type="Node" unique_id=135636176]
+script = ExtResource("1_h63fu")

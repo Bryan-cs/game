@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/test_nivel_config.gd" id="1_nvcfg"]
+
+[node name="TestNivelConfig" type="Node"]
+script = ExtResource("1_nvcfg")

@@ -1,0 +1,17 @@
+{
+  "name": "godot-claude-mcp",
+  "version": "1.0.0",
+  "description": "Servidor MCP que conecta Claude Code con el editor de Godot",
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "godot-claude-mcp": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.23.0"
+  }
+}

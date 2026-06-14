@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://2ts3udhn3ak"]
+
+[ext_resource type="Script" uid="uid://bo4mbrftdn3ul" path="res://tools/test_rendimiento.gd" id="1_vg5o1"]
+
+[node name="TestRendimiento" type="Node" unique_id=595570380]
+script = ExtResource("1_vg5o1")

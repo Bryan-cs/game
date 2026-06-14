@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://okya5p68ilet"]
+
+[ext_resource type="Script" uid="uid://dd5bqrlwjk7c6" path="res://tools/test_reliquia.gd" id="1_0fkp4"]
+
+[node name="TestReliquia" type="Node" unique_id=597991859]
+script = ExtResource("1_0fkp4")
