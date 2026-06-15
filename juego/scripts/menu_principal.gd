@@ -7,6 +7,7 @@ const MenuMisionesScript   := preload("res://scripts/menu_misiones.gd")
 const MenuTiendaScript     := preload("res://scripts/menu_tienda.gd")
 const MenuInventarioScript := preload("res://scripts/menu_inventario.gd")
 const MenuCofresScript     := preload("res://scripts/menu_cofres.gd")
+const MenuArbolScript      := preload("res://scripts/menu_arbol.gd")
 const SonidoScript         := preload("res://scripts/sonido.gd")
 
 const CLASES := ["guerrero", "arquero", "mago", "nigromante", "asesino", "paladin"]
@@ -18,6 +19,7 @@ var _misiones: CanvasLayer
 var _tienda: CanvasLayer
 var _inventario: CanvasLayer
 var _cofres: CanvasLayer
+var _arbol: CanvasLayer
 @onready var _estado: Node = get_node(^"/root/Estado")
 
 var _pivote_pj: Node3D
@@ -164,11 +166,20 @@ func _ready() -> void:
 	oro.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	caja.add_child(oro)
 
+	var lbl_libros := Label.new()
+	var libros: int = int(_estado.libros_talento) if "libros_talento" in _estado else 0
+	lbl_libros.text = "Libros de Talento: %d" % libros
+	lbl_libros.add_theme_font_size_override("font_size", 15)
+	lbl_libros.add_theme_color_override("font_color", Color(0.70, 0.46, 1.0))
+	lbl_libros.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	caja.add_child(lbl_libros)
+
 	var sep := Control.new()
 	sep.custom_minimum_size = Vector2(0, 12)
 	caja.add_child(sep)
 
 	_boton(caja, "JUGAR", _al_jugar)
+	_boton(caja, "ÁRBOL DE TALENTOS", func() -> void: _arbol.abrir())
 	_boton(caja, "INVENTARIO", func() -> void: _inventario.abrir())
 	_boton(caja, "COFRES", func() -> void: _cofres.abrir())
 	_boton(caja, "MISIONES", func() -> void: _misiones.abrir())
@@ -211,6 +222,9 @@ func _ready() -> void:
 	_cofres = CanvasLayer.new()
 	_cofres.set_script(MenuCofresScript)
 	add_child(_cofres)
+	_arbol = CanvasLayer.new()
+	_arbol.set_script(MenuArbolScript)
+	add_child(_arbol)
 
 	var sonido := Node.new()
 	sonido.set_script(SonidoScript)

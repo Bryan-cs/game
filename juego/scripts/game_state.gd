@@ -10,6 +10,8 @@ const EquipamientoScript := preload("res://scripts/equipamiento.gd")
 
 var oro_total := 0
 var gemas := 0
+var libros_talento := 0          # moneda de metaprogresión (Árbol de Talentos)
+var arbol_nodos := {}            # { node_id: nivel_comprado }
 var nivel_max_desbloqueado := 0  # índice del nivel más alto desbloqueado (0 = primero)
 var estrellas_nivel := {}  # { indice_nivel(int como String en JSON): mejor_estrellas 0-3 }
 var inventario: Array = []        # piezas en la mochila (no equipadas)
@@ -151,6 +153,29 @@ func comprar_talento(clave: String) -> bool:
 	return true
 
 
+# --- Árbol de Talentos --------------------------------------------------------
+
+func comprar_nodo_arbol(id: String) -> bool:
+	var nodo: Dictionary = ArbolTalentos.nodo_por_id(id)
+	if nodo.is_empty():
+		return false
+	var nivel_actual: int = int(arbol_nodos.get(id, 0))
+	if nivel_actual >= int(nodo.max):
+		return false
+	var costos: Array = nodo.costos
+	var costo: int = costos[nivel_actual] if nivel_actual < costos.size() else 0
+	if libros_talento < costo:
+		return false
+	libros_talento -= costo
+	arbol_nodos[id] = nivel_actual + 1
+	guardar()
+	return true
+
+
+func mult_oro_arbol() -> float:
+	return 1.0 + 0.10 * float(int(arbol_nodos.get("oro_global", 0)))
+
+
 # --- Mapas y skins ---------------------------------------------------------------
 
 func comprar_mapa(id: String) -> bool:
@@ -290,6 +315,8 @@ func guardar() -> void:
 		"inventario": inventario,
 		"equipado": equipado,
 		"ultima_clase": ultima_clase,
+		"libros_talento": libros_talento,
+		"arbol_nodos": arbol_nodos,
 	}
 	var archivo := FileAccess.open(RUTA_GUARDADO, FileAccess.WRITE)
 	if archivo:
@@ -337,6 +364,9 @@ func cargar() -> void:
 	var eq = datos.get("equipado", {})
 	equipado = eq if eq is Dictionary else {}
 	ultima_clase = datos.get("ultima_clase", "guerrero")
+	libros_talento = int(datos.get("libros_talento", 0))
+	var an = datos.get("arbol_nodos", {})
+	arbol_nodos = an if an is Dictionary else {}
 
 
 func desbloquear_nivel(indice: int) -> void:

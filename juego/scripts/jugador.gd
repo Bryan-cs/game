@@ -148,6 +148,7 @@ var _consagracion_t := 0.0
 var _corazon_cd := 0.0
 # Reliquias de Run
 var reliquias: Array[String] = []
+var mult_curacion := 1.0  # escalar de curación; modificado por nodos del árbol
 var _rabia_stacks: int = 0
 var _ultimo_aliento_usado: bool = false
 var _sello_elite_activo: bool = false
@@ -188,6 +189,7 @@ func _ready() -> void:
 	_aplicar_clase()
 	_crear_cuerpo()
 	_aplicar_talentos()
+	_aplicar_arbol_talentos()
 	_aplicar_equipo_meta()
 	vida = vida_max
 	vida_cambiada.emit(vida, vida_max)
@@ -346,6 +348,53 @@ func _aplicar_talentos() -> void:
 	stats.dano_pct += 8.0 * int(t.get("dano", 0))
 	stats.critico_pct += 3.0 * int(t.get("critico", 0))
 	radio_iman *= 1.0 + 0.15 * int(t.get("xp", 0))
+
+
+func _aplicar_arbol_talentos() -> void:
+	if not _estado or not ("arbol_nodos" in _estado):
+		return
+	var arbol: Dictionary = _estado.arbol_nodos
+	if arbol.is_empty():
+		return
+	_aplicar_lista_nodos_arbol(ArbolTalentos.NODOS_GLOBAL, arbol)
+	_aplicar_lista_nodos_arbol(ArbolTalentos.NODOS_CLASE.get(clase, []), arbol)
+
+
+func _aplicar_lista_nodos_arbol(lista: Array, arbol: Dictionary) -> void:
+	for nodo in lista:
+		var nivel: int = int(arbol.get(nodo.id, 0))
+		if nivel <= 0:
+			continue
+		var stat: String = nodo.stat
+		var valor: float = float(nodo.get("valor_por_nivel", 0.0)) * float(nivel)
+		match stat:
+			"vida_max_pct":
+				stats.vida_max *= 1.0 + valor / 100.0
+			"suerte":
+				stats.suerte += valor
+			"curacion_pct":
+				mult_curacion *= 1.0 + valor / 100.0
+			"xp_pct":
+				mult_xp *= 1.0 + valor / 100.0
+			"radio_iman_pct":
+				radio_iman *= 1.0 + valor / 100.0
+			"melee_pct":
+				stats.melee_pct += valor
+			"armadura":
+				stats.armadura += valor
+			"vel_ataque_pct":
+				stats.vel_ataque_pct += valor
+			"critico_pct":
+				stats.critico_pct += valor
+			"distancia_pct":
+				stats.distancia_pct += valor
+			"esquiva_pct":
+				stats.esquiva_pct += valor
+			"regen":
+				stats.regen += valor
+			"dano_pct":
+				stats.dano_pct += valor
+			# "oro_pct" se aplica en main.gd via _estado.mult_oro_arbol()
 
 
 func _aplicar_equipo_meta() -> void:
@@ -1154,7 +1203,7 @@ func recibir_dano(cantidad: float) -> void:
 
 
 func curar(cantidad: float) -> void:
-	vida = minf(vida + cantidad * (1.0 - corrupcion * 0.0075), vida_max)
+	vida = minf(vida + cantidad * mult_curacion * (1.0 - corrupcion * 0.0075), vida_max)
 	vida_cambiada.emit(vida, vida_max)
 
 

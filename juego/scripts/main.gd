@@ -24,6 +24,8 @@ const MenuPausaScript := preload("res://scripts/menu_pausa.gd")
 const MenuAjustesScript := preload("res://scripts/menu_ajustes.gd")
 const AyudaScript := preload("res://scripts/ayuda.gd")
 const MenuReliquiasScript := preload("res://scripts/menu_reliquias.gd")
+const FrascoVidaScript := preload("res://scripts/frasco_vida.gd")
+const LibroTalentoScript := preload("res://scripts/libro_talento.gd")
 
 ## Nombres de jefes (se reusan al invocar jefes; jefe-por-nivel es Capa N2)
 const NOMBRES_JEFES := {
@@ -880,6 +882,7 @@ func _al_morir_enemigo(enemigo: Node) -> void:
 	elif randf() < _prob_oro:
 		oro_drop = 2
 	if oro_drop > 0:
+		oro_drop = int(float(oro_drop) * _estado.mult_oro_arbol())
 		oro_partida += oro_drop * mult_oro
 		hud.actualizar_oro(oro_partida)
 	if enemigo.es_jefe:
@@ -901,6 +904,47 @@ func _al_morir_enemigo(enemigo: Node) -> void:
 		_soltar_cofre(pos)
 	elif enemigo.tipo in ["demonio_menor", "caballero_oscuro"] and randf() < 0.06:
 		_soltar_cofre(pos)
+	# Frasco de Vida: 3% normales, 15% élites, 1 garantizado de boss.
+	if enemigo.es_jefe:
+		_soltar_frasco(pos)
+	elif enemigo.es_elite and randf() < 0.15:
+		_soltar_frasco(pos)
+	elif not enemigo.es_elite and randf() < 0.03:
+		_soltar_frasco(pos)
+	# Libro de Talento: solo élites (20%) y boss (garantizado).
+	if enemigo.es_jefe:
+		_soltar_libro_talento(pos)
+	elif enemigo.es_elite and randf() < 0.20:
+		_soltar_libro_talento(pos)
+
+
+func _soltar_frasco(pos: Vector3) -> void:
+	var frasco := Node3D.new()
+	frasco.set_script(FrascoVidaScript)
+	frasco.recogido.connect(func() -> void:
+		if not is_instance_valid(jugador):
+			return
+		var cura := jugador.vida_max * 0.20
+		jugador.curar(cura)
+		Efectos.sonido(self, "cofre", -2.0)
+		Efectos.explosion(self, jugador.global_position, Color(0.95, 0.25, 0.32), 14)
+		hud.anunciar("+20% VIDA", Color(0.95, 0.28, 0.36)))
+	add_child(frasco)
+	frasco.global_position = Vector3(pos.x, 0.4, pos.z)
+
+
+func _soltar_libro_talento(pos: Vector3) -> void:
+	var libro := Node3D.new()
+	libro.set_script(LibroTalentoScript)
+	libro.recogido.connect(func() -> void:
+		_estado.libros_talento += 1
+		_estado.guardar()
+		Efectos.sonido(self, "levelup", -2.0)
+		var fx_pos: Vector3 = jugador.global_position if is_instance_valid(jugador) else pos
+		Efectos.explosion(self, fx_pos, Color(0.60, 0.35, 1.0), 18)
+		hud.anunciar("LIBRO DE TALENTO  +1", Color(0.68, 0.42, 1.0)))
+	add_child(libro)
+	libro.global_position = Vector3(pos.x, 0.4, pos.z)
 
 
 func _invocar_aliado(pos: Vector3) -> void:
