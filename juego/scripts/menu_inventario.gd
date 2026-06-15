@@ -61,7 +61,7 @@ func _ready() -> void:
 	_monedas.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	cab.add_child(_monedas)
 	var cerrar := Button.new()
-	cerrar.text = "✕  CERRAR"
+	cerrar.text = "← VOLVER"
 	cerrar.custom_minimum_size = Vector2(170, 52)
 	cerrar.add_theme_font_size_override("font_size", 20)
 	cerrar.pressed.connect(func() -> void: visible = false)
@@ -203,6 +203,11 @@ func _construir_personaje() -> void:
 			malla.position = Vector3(0.45, 1.0, 0.2)
 			malla.scale = Vector3.ONE * 0.9
 			_pivote_pj.add_child(malla)
+
+
+func _unhandled_input(evento: InputEvent) -> void:
+	if visible and evento.is_action_pressed("ui_cancel"):
+		visible = false
 
 
 func _process(_delta: float) -> void:

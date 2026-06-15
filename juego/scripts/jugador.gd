@@ -146,6 +146,14 @@ var escudo := 0.0
 var _escudo_t := 0.0
 var _consagracion_t := 0.0
 var _corazon_cd := 0.0
+# Reliquias de Run
+var reliquias: Array[String] = []
+var _rabia_stacks: int = 0
+var _ultimo_aliento_usado: bool = false
+var _sello_elite_activo: bool = false
+var _piel_piedra_timer: float = 8.0
+var _corazon_vacio_activo: bool = false
+var _corazon_vacio_timer: float = 0.0
 var _frenesi_t := 0.0
 var _rey_t := 0.0
 var _rey_cd := 0.0
@@ -399,6 +407,18 @@ func _physics_process(delta: float) -> void:
 		_modelo.visible = _invulnerable <= 0.3 or fmod(_invulnerable * 12.0, 2.0) < 1.0
 	if regen > 0.0 and vida > 0.0 and vida < vida_max:
 		curar(regen * delta)
+	# Piel de Piedra: escudo periódico cada 8 s
+	if "piel_de_piedra" in reliquias and vida > 0.0:
+		_piel_piedra_timer -= delta
+		if _piel_piedra_timer <= 0.0:
+			_piel_piedra_timer = 8.0
+			escudo = maxf(escudo, vida_max * 0.20)
+			_escudo_t = maxf(_escudo_t, 4.0)
+	# Corazón Vacío: velocidad temporal tras matar jefe
+	if _corazon_vacio_activo:
+		_corazon_vacio_timer = maxf(0.0, _corazon_vacio_timer - delta)
+		if _corazon_vacio_timer <= 0.0:
+			_corazon_vacio_activo = false
 	if not is_on_floor():
 		velocity.y -= _gravedad * delta
 	var entrada := Vector3(
@@ -421,6 +441,8 @@ func _physics_process(delta: float) -> void:
 			vel_efectiva *= 1.0 + 0.08 * nivel_habilidad("sed_batalla")
 		if _rey_t > 0.0:
 			vel_efectiva *= 1.3
+		if _corazon_vacio_activo:
+			vel_efectiva *= 1.30
 		velocity.x = entrada.x * vel_efectiva
 		velocity.z = entrada.z * vel_efectiva
 	move_and_slide()
@@ -529,11 +551,24 @@ func nivel_habilidad(id: String) -> int:
 	return int(habilidades.get(id, 0))
 
 
-func al_matar() -> void:
+func al_matar(es_elite := false, es_jefe := false) -> void:
 	if nivel_habilidad("sed_batalla") > 0:
 		_frenesi_t = 4.0
 	if _rey_t > 0.0:
 		curar(5.0)
+	if "rabia_acumulada" in reliquias:
+		_rabia_stacks = mini(_rabia_stacks + 1, 20)
+	if "pacto_corrupto" in reliquias:
+		anadir_corrupcion(1.0)
+	if es_elite and "sello_elite" in reliquias:
+		_sello_elite_activo = true
+		Efectos.onda(get_tree().current_scene, global_position, 1.5, Color(0.6, 0.5, 1.0))
+	if es_jefe and "corazon_vacio" in reliquias:
+		curar(vida_max * 0.50)
+		_corazon_vacio_activo = true
+		_corazon_vacio_timer = 15.0
+		Efectos.onda(get_tree().current_scene, global_position, 3.0, Color(0.3, 0.8, 0.55))
+		Efectos.sonido(self, "levelup", 0.0)
 
 
 func intentar_habilidad(slot := 0) -> void:
@@ -885,7 +920,13 @@ func _ataque_melee(direccion: Vector3, datos: Dictionary) -> void:
 			continue
 		if datos.has("empuje") and enemigo.has_method("aplicar_empuje"):
 			enemigo.aplicar_empuje(direccion * datos.empuje)
-		enemigo.recibir_dano(dano)
+		var dano_melee := dano
+		if "ojo_depredador" in reliquias and "vida" in enemigo and "vida_max" in enemigo:
+			if enemigo.vida / maxf(enemigo.vida_max, 1.0) < 0.30:
+				dano_melee *= 2.0
+		enemigo.recibir_dano(dano_melee)
+		if "agujon_venenoso" in reliquias and randf() < 0.30 and enemigo.has_method("envenenar"):
+			enemigo.envenenar(5.0, 3.0)
 		golpeo = true
 		golpes += 1
 	if golpes > 0 and stats.robo_vida > 0.0:
@@ -919,6 +960,10 @@ func _ataque_proyectil(direccion: Vector3, datos: Dictionary) -> void:
 	proyectil.velocidad = datos.vel * vel_proyectil_mult
 	proyectil.dano = calcular_dano(datos.dano + datos.por_nivel * (nivel_disparo - 1), "distancia")
 	proyectil.robo_vida = stats.robo_vida
+	if "ojo_depredador" in reliquias:
+		proyectil.double_bajo_vida = true
+	if "agujon_venenoso" in reliquias and randf() < 0.30:
+		proyectil.veneno_dps = maxf(proyectil.veneno_dps, 5.0)
 	proyectil.look_at(proyectil.global_position + direccion, Vector3.UP)
 	if datos.tipo == "flecha":
 		proyectil.perforaciones_restantes += nivel_habilidad("perforante")
@@ -1071,12 +1116,25 @@ func recibir_dano(cantidad: float) -> void:
 		return
 	cantidad *= 1.0 - stats.reduccion_armadura()
 	cantidad *= maxf(0.4, 1.0 - 0.12 * nivel_habilidad("piel_hierro"))
+	if "codicia_infernal" in reliquias:
+		cantidad *= 1.20
+	if "rabia_acumulada" in reliquias and cantidad > 0.0:
+		_rabia_stacks = 0
 	if escudo > 0.0:
 		var absorbido := minf(escudo, cantidad)
 		escudo -= absorbido
 		cantidad -= absorbido
 		if cantidad <= 0.0:
 			return
+	# Último Aliento: una vez por run sobrevive a golpe letal
+	if "ultimo_aliento" in reliquias and not _ultimo_aliento_usado and vida - cantidad <= 0.0 and vida > 1.0:
+		vida = 1.0
+		_ultimo_aliento_usado = true
+		Efectos.onda(get_tree().current_scene, global_position, 3.0, Color(1.0, 1.0, 0.3))
+		Efectos.sonido(self, "cofre", 2.0)
+		vida_cambiada.emit(vida, vida_max)
+		_invulnerable = 2.0
+		return
 	vida -= cantidad
 	if bool(_estado.ajustes.get("numeros_dano", true)):
 		Efectos.numero_dano(get_tree().current_scene, global_position + Vector3.UP * 1.5, cantidad, Color(1.0, 0.28, 0.28))
@@ -1117,12 +1175,23 @@ func ganar_xp(cantidad: float) -> void:
 
 func calcular_dano(base: float, tipo := "global") -> float:
 	var dano := base * stats.mult_dano(tipo) * (1.0 + corrupcion * 0.005)
+	if "rabia_acumulada" in reliquias:
+		dano *= 1.0 + minf(_rabia_stacks * 0.02, 0.40)
+	if "pacto_corrupto" in reliquias:
+		dano *= 1.60
 	if nivel_habilidad("furia") > 0 and vida < vida_max * 0.4:
 		dano *= 1.0 + 0.15 * nivel_habilidad("furia")
 	if _rey_t > 0.0:
 		dano *= 1.8
-	if randf() < prob_critico:
-		dano *= mult_critico
+	var es_critico := randf() < prob_critico or _sello_elite_activo
+	if es_critico:
+		var mult_crit := mult_critico
+		if _sello_elite_activo:
+			mult_crit = maxf(mult_crit, 2.0)
+			_sello_elite_activo = false
+		dano *= mult_crit
 		if nivel_habilidad("sed_sangre") > 0 and vida > 0.0:
 			curar(2.0 * nivel_habilidad("sed_sangre"))
+		if "sangre_fria" in reliquias and vida > 0.0:
+			curar(vida_max * 0.03)
 	return dano

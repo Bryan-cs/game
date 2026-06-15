@@ -23,6 +23,7 @@ const AltarScript := preload("res://scripts/altar.gd")
 const MenuPausaScript := preload("res://scripts/menu_pausa.gd")
 const MenuAjustesScript := preload("res://scripts/menu_ajustes.gd")
 const AyudaScript := preload("res://scripts/ayuda.gd")
+const MenuReliquiasScript := preload("res://scripts/menu_reliquias.gd")
 
 ## Nombres de jefes (se reusan al invocar jefes; jefe-por-nivel es Capa N2)
 const NOMBRES_JEFES := {
@@ -62,6 +63,7 @@ var menu_pausa: CanvasLayer
 var menu_ajustes: CanvasLayer
 var controles: CanvasLayer
 var mejoras_pendientes := 0
+var _menu_reliquias: CanvasLayer
 var armas := {}
 var _mult_vel_evento := 1.0
 var _prob_oro := 0.25
@@ -472,6 +474,11 @@ func _crear_interfaz() -> void:
 	menu_pausa.reiniciar.connect(_reiniciar)
 	menu_pausa.abrir_ajustes.connect(menu_ajustes.abrir)
 	menu_pausa.salir_al_menu.connect(_salir_al_menu)
+	_menu_reliquias = CanvasLayer.new()
+	_menu_reliquias.set_script(MenuReliquiasScript)
+	add_child(_menu_reliquias)
+	_menu_reliquias.reliquia_elegida.connect(_al_elegir_reliquia)
+	_menu_reliquias.intercambio_decidido.connect(_al_intercambiar_reliquia)
 	_crear_game_over()
 
 
@@ -642,7 +649,7 @@ func _al_subir_nivel(_nivel: int) -> void:
 
 
 func _mostrar_mejoras_si_toca() -> void:
-	if menu.visible or not partida_activa or mejoras_pendientes <= 0:
+	if menu.visible or _menu_reliquias.visible or not partida_activa or mejoras_pendientes <= 0:
 		return
 	_opciones_actuales = _generar_opciones()
 	menu.mostrar(_opciones_actuales)
@@ -838,7 +845,7 @@ func _al_morir_enemigo(enemigo: Node) -> void:
 	kills += 1
 	hud.actualizar_kills(kills)
 	if is_instance_valid(jugador):
-		jugador.al_matar()
+		jugador.al_matar(enemigo.es_elite, enemigo.es_jefe)
 	_estado.evento("kills")
 	if enemigo.es_jefe:
 		_estado.evento("jefes")
@@ -852,6 +859,8 @@ func _al_morir_enemigo(enemigo: Node) -> void:
 		_invocar_aliado(pos)
 	_soltar_gema(pos, enemigo.xp)
 	# Oro de la run: boss siempre, elite garantizado, normal probabilístico.
+	# Codicia Infernal duplica todo el oro.
+	var mult_oro := 2 if (is_instance_valid(jugador) and "codicia_infernal" in jugador.reliquias) else 1
 	var oro_drop := 0
 	if enemigo.es_jefe:
 		oro_drop = 20
@@ -860,11 +869,11 @@ func _al_morir_enemigo(enemigo: Node) -> void:
 	elif randf() < _prob_oro:
 		oro_drop = 2
 	if oro_drop > 0:
-		oro_partida += oro_drop
+		oro_partida += oro_drop * mult_oro
 		hud.actualizar_oro(oro_partida)
 	if enemigo.es_jefe:
-		# Recompensa de jefe: cofre (mejora). Almas-de-run eliminadas en Capa N1.
-		_soltar_cofre(pos)
+		# Recompensa de jefe: reliquia garantizada (cofre especial).
+		_soltar_cofre(pos, true)
 		# ¿Queda otro jefe vivo? (futuras capas pueden invocar varios)
 		var otro_jefe: Node = null
 		for e in get_tree().get_nodes_in_group("enemigos"):
@@ -924,18 +933,75 @@ func _soltar_gema(pos: Vector3, valor: float) -> void:
 	gema.global_position = Vector3(pos.x, 0.5, pos.z)
 
 
-func _soltar_cofre(pos: Vector3) -> void:
+func _soltar_cofre(pos: Vector3, es_jefe := false) -> void:
 	var cofre := Node3D.new()
 	cofre.set_script(CofreScript)
-	cofre.abierto.connect(_al_abrir_cofre)
+	if es_jefe:
+		cofre.abierto.connect(_al_abrir_cofre_jefe)
+	else:
+		cofre.abierto.connect(_al_abrir_cofre)
 	add_child(cofre)
 	cofre.global_position = Vector3(pos.x, 0.5, pos.z)
 
 
+func _al_abrir_cofre_jefe() -> void:
+	Efectos.sonido(self, "cofre")
+	_ofrecer_reliquia()
+
+
 func _al_abrir_cofre() -> void:
 	Efectos.sonido(self, "cofre")
-	mejoras_pendientes += 1
-	_mostrar_mejoras_si_toca()
+	if randf() < 0.25:
+		_ofrecer_reliquia()
+	else:
+		mejoras_pendientes += 1
+		_mostrar_mejoras_si_toca()
+
+
+func _ofrecer_reliquia() -> void:
+	if not is_instance_valid(jugador):
+		return
+	if _menu_reliquias.visible or menu.visible:
+		mejoras_pendientes += 1
+		_mostrar_mejoras_si_toca()
+		return
+	var disponibles: Array = Reliquias.ids_disponibles(jugador.reliquias)
+	if disponibles.is_empty():
+		mejoras_pendientes += 1
+		_mostrar_mejoras_si_toca()
+		return
+	disponibles.shuffle()
+	var opciones_relic: Array = []
+	for i in mini(3, disponibles.size()):
+		var id: String = disponibles[i]
+		var datos: Dictionary = Reliquias.CATALOGO[id]
+		opciones_relic.append({"id": id, "nombre": datos.nombre, "desc": datos.desc,
+			"tipo": datos.tipo, "color": datos.color})
+	_menu_reliquias.mostrar_oferta(opciones_relic)
+
+
+func _al_elegir_reliquia(id: String) -> void:
+	if not is_instance_valid(jugador):
+		get_tree().paused = false
+		return
+	if jugador.reliquias.size() < 3:
+		jugador.reliquias.append(id)
+		var datos: Dictionary = Reliquias.CATALOGO[id]
+		hud.anunciar("RELIQUIA: " + datos.nombre.to_upper(), datos.color)
+		hud.actualizar_reliquias(jugador.reliquias)
+		get_tree().paused = false
+	else:
+		_menu_reliquias.mostrar_intercambio(id, jugador.reliquias)
+
+
+func _al_intercambiar_reliquia(nueva_id: String, vieja_id: String) -> void:
+	if is_instance_valid(jugador) and vieja_id != "":
+		jugador.reliquias.erase(vieja_id)
+		jugador.reliquias.append(nueva_id)
+		var datos: Dictionary = Reliquias.CATALOGO[nueva_id]
+		hud.anunciar("RELIQUIA: " + datos.nombre.to_upper(), datos.color)
+		hud.actualizar_reliquias(jugador.reliquias)
+	get_tree().paused = false
 
 
 # --- Eventos dinámicos ------------------------------------------------------
@@ -1006,8 +1072,7 @@ func _al_tocar_altar() -> void:
 	Efectos.sonido(self, "cofre")
 	jugador.anadir_corrupcion(20.0)
 	hud.anunciar("PODER A CAMBIO DE CORRUPCIÓN", Color(0.8, 0.3, 1.0))
-	mejoras_pendientes += 1
-	_mostrar_mejoras_si_toca()
+	_ofrecer_reliquia()
 
 
 # --- Pausa y fin de partida -------------------------------------------------

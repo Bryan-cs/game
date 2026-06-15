@@ -21,6 +21,7 @@ var _texto_hab2: Label
 var barra_corrupcion: ProgressBar
 var etiqueta_oro: Label
 var etiqueta_anuncio: Label
+var _slots_reliquias: Array
 
 
 func _ready() -> void:
@@ -98,6 +99,22 @@ func _construir() -> void:
 	etiqueta_oro.offset_left = -180.0
 	etiqueta_oro.offset_top = 84.0
 	etiqueta_oro.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
+
+	var lbl_reliquias := _crear_etiqueta("Reliquias", 11)
+	lbl_reliquias.anchor_left = 1.0
+	lbl_reliquias.anchor_right = 1.0
+	lbl_reliquias.offset_left = -180.0
+	lbl_reliquias.offset_top = 108.0
+	lbl_reliquias.add_theme_color_override("font_color", Color(0.55, 0.4, 0.8))
+	_slots_reliquias = []
+	for i in 3:
+		var slot := _crear_etiqueta("—", 13)
+		slot.anchor_left = 1.0
+		slot.anchor_right = 1.0
+		slot.offset_left = -180.0
+		slot.offset_top = 122.0 + i * 18.0
+		slot.add_theme_color_override("font_color", Color(0.45, 0.35, 0.65))
+		_slots_reliquias.append(slot)
 
 	etiqueta_jefe = _crear_etiqueta("GIGANTE PUTREFACTO", 20)
 	etiqueta_jefe.anchor_left = 0.5
@@ -293,3 +310,15 @@ func ocultar_jefe() -> void:
 
 func mostrar_pausa(activa: bool) -> void:
 	etiqueta_pausa.visible = activa
+
+
+func actualizar_reliquias(ids: Array) -> void:
+	for i in 3:
+		var slot: Label = _slots_reliquias[i]
+		if i < ids.size():
+			var datos: Dictionary = Reliquias.CATALOGO[ids[i]]
+			slot.text = "✦ " + datos.nombre
+			slot.add_theme_color_override("font_color", datos.color)
+		else:
+			slot.text = "—"
+			slot.add_theme_color_override("font_color", Color(0.45, 0.35, 0.65))

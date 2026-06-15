@@ -9,6 +9,7 @@ var perforaciones_restantes := 0
 var vida_util := 3.5
 var veneno_dps := 0.0
 var robo_vida := 0.0  # % del daño que cura al jugador al impactar
+var double_bajo_vida := false  # Ojo Depredador: 2x daño si objetivo < 30% vida
 
 
 func _ready() -> void:
@@ -40,7 +41,11 @@ func _al_golpear(cuerpo: Node3D) -> void:
 	Efectos.sonido(self, "golpe", -10.0)
 	if veneno_dps > 0.0 and cuerpo.has_method("envenenar"):
 		cuerpo.envenenar(veneno_dps, 3.0)
-	cuerpo.recibir_dano(dano)
+	var dano_final := dano
+	if double_bajo_vida and "vida" in cuerpo and "vida_max" in cuerpo:
+		if cuerpo.vida / maxf(cuerpo.vida_max, 1.0) < 0.30:
+			dano_final *= 2.0
+	cuerpo.recibir_dano(dano_final)
 	_curar_jugador()
 	if perforaciones_restantes <= 0:
 		queue_free()
