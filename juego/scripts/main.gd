@@ -64,6 +64,9 @@ var menu_ajustes: CanvasLayer
 var controles: CanvasLayer
 var mejoras_pendientes := 0
 var _menu_reliquias: CanvasLayer
+var _gi_spawn_mult := 1.0
+var _gi_dano_mult  := 1.0
+var _gi_pulso_n    := 0
 var armas := {}
 var _mult_vel_evento := 1.0
 var _prob_oro := 0.25
@@ -504,8 +507,7 @@ func _iniciar_partida(clave: String, mapa := "bosque", indice_nivel := 0) -> voi
 	clase_jugador = clave
 	_estado.ultima_clase = clave
 	nivel_actual = indice_nivel
-	var tema_nivel := NivelesScript.tema(indice_nivel)
-	mapa_actual = tema_nivel if TEMAS_MAPA.has(tema_nivel) else "bosque"
+	mapa_actual = mapa if TEMAS_MAPA.has(mapa) else "bosque"
 	_jefe_disparado = false
 	_crear_entorno()
 	_estado.evento("partidas")
@@ -520,6 +522,13 @@ func _iniciar_partida(clave: String, mapa := "bosque", indice_nivel := 0) -> voi
 		jugador.modo_tactil = true
 	partida_activa = true
 	sonido_mgr.tocar_musica("res://audio/musica.wav")
+	var _g_datos: Dictionary = Grietas.de_nivel(indice_nivel)
+	if not _g_datos.is_empty():
+		var _g_txt: String = _g_datos.nombre.to_upper() + "  ·  " + _g_datos.subtitulo
+		var _g_col: Color  = _g_datos.color
+		_temporizar(1.2, func(): hud.anunciar(_g_txt, _g_col))
+	if not _g_datos.is_empty() and _g_datos.get("id", "") == "grieta_i":
+		_activar_mecanica_grieta_i()
 
 
 # --- Armas y mejoras --------------------------------------------------------
@@ -737,7 +746,7 @@ func _spawn_continuo() -> void:
 		return
 	# La dureza escala con el tiempo: mas enemigos por tick a medida que avanza.
 	var dificultad := 1.0 + tiempo / 60.0
-	var lote := mini(int(2 + dificultad), MAX_ENEMIGOS - vivos)
+	var lote := mini(int((2.0 + dificultad) * _gi_spawn_mult), MAX_ENEMIGOS - vivos)
 	for i in maxi(lote, 0):
 		_generar_enemigo(_tipo_aleatorio())
 
@@ -797,6 +806,8 @@ func _generar_enemigo(tipo: String, forzar_elite := false) -> Node3D:
 	var enemigo := CharacterBody3D.new()
 	enemigo.set_script(EnemigoScript)
 	enemigo.configurar(tipo, (1.0 + minutos * 0.25) * NivelesScript.escala(nivel_actual))
+	if _gi_dano_mult != 1.0 and not (tipo in EnemigoScript.JEFES):
+		enemigo.dano *= _gi_dano_mult
 	if not (tipo in EnemigoScript.JEFES) and (forzar_elite or (minutos >= 3.0 and randf() < 0.15)):
 		enemigo.configurar_elite()
 	if minutos >= 5.0:
@@ -1054,6 +1065,70 @@ func _temporizar(segundos: float, accion: Callable) -> void:
 	temporizador.timeout.connect(temporizador.queue_free)
 	add_child(temporizador)
 	temporizador.start()
+
+
+# --- Mecánica de Grieta I: Pulso del Umbral ----------------------------------
+# Cada 35 s el Umbral pulsa 15 s: +1.8× spawn, +20% daño de nuevos enemigos,
+# ambiente verde-corrupto. Al calmarse entrega oro escalado.
+# Toca ambient_light y glow (no fog_density) para no chocar con el evento Eclipse.
+
+func _activar_mecanica_grieta_i() -> void:
+	var t := Timer.new()
+	t.name = "PulsoUmbral"
+	t.wait_time = 35.0
+	t.autostart = true
+	t.timeout.connect(_pulso_grieta_i)
+	add_child(t)
+	_temporizar(30.0, func():
+		if partida_activa and not get_tree().paused and not is_instance_valid(jefe):
+			hud.anunciar("El Umbral tiembla...", Color(0.62, 0.50, 0.12))
+	)
+
+
+func _pulso_grieta_i() -> void:
+	if not partida_activa or get_tree().paused or is_instance_valid(jefe):
+		return
+	_gi_pulso_n   += 1
+	_gi_spawn_mult = 1.8
+	_gi_dano_mult  = 1.20
+	if _entorno:
+		_entorno.ambient_light_energy = 0.22
+		_entorno.ambient_light_color  = Color(0.12, 0.22, 0.12)
+		_entorno.glow_intensity       = 0.38
+	if _luz:
+		_luz.light_color = Color(0.38, 0.60, 0.40)
+	var origen := Vector3.ZERO
+	if is_instance_valid(jugador):
+		origen = jugador.global_position
+	Efectos.onda(self, origen, 50.0, Color(0.18, 0.88, 0.28))
+	Efectos.sonido(self, "nova", -2.0)
+	sacudir_camara(0.25)
+	hud.anunciar("PULSO DEL UMBRAL — ¡SOBREVIVE!", Color(0.28, 0.92, 0.42))
+	hud.set_pulso_umbral(true)
+	_temporizar(15.0, _fin_pulso_grieta_i)
+
+
+func _fin_pulso_grieta_i() -> void:
+	_gi_spawn_mult = 1.0
+	_gi_dano_mult  = 1.0
+	hud.set_pulso_umbral(false)
+	if not partida_activa:
+		return
+	if _entorno and mapa_actual in TEMAS_MAPA:
+		var tema: Dictionary = TEMAS_MAPA[mapa_actual]
+		_entorno.ambient_light_energy = 0.6
+		_entorno.ambient_light_color  = tema.ambiente
+		_entorno.glow_intensity       = 0.9
+	if _luz and mapa_actual in TEMAS_MAPA:
+		_luz.light_color = TEMAS_MAPA[mapa_actual].luz
+	var bonus := int(20 + _gi_pulso_n * 6)
+	oro_partida += bonus
+	hud.actualizar_oro(oro_partida)
+	hud.anunciar("UMBRAL CALMADO  +%d ORO" % bonus, Color(1.0, 0.84, 0.28))
+	_temporizar(15.0, func():
+		if partida_activa and not get_tree().paused and not is_instance_valid(jefe):
+			hud.anunciar("El Umbral tiembla...", Color(0.62, 0.50, 0.12))
+	)
 
 
 func _soltar_altar() -> void:

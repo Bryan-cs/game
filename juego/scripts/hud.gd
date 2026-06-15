@@ -21,6 +21,7 @@ var _texto_hab2: Label
 var barra_corrupcion: ProgressBar
 var etiqueta_oro: Label
 var etiqueta_anuncio: Label
+var _lbl_pulso: Label
 var _slots_reliquias: Array
 
 
@@ -157,6 +158,15 @@ func _construir() -> void:
 	etiqueta_anuncio.offset_bottom = 140.0
 	etiqueta_anuncio.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	etiqueta_anuncio.modulate.a = 0.0
+
+	_lbl_pulso = _crear_etiqueta("⚡ PULSO ACTIVO", 12)
+	_lbl_pulso.anchor_left = 0.5
+	_lbl_pulso.anchor_right = 0.5
+	_lbl_pulso.offset_left = -70.0
+	_lbl_pulso.offset_top = 68.0
+	_lbl_pulso.add_theme_color_override("font_color", Color(0.28, 0.92, 0.42))
+	_lbl_pulso.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_lbl_pulso.visible = false
 
 	barra_habilidad = _crear_barra(Color(0.15, 0.09, 0.04, 0.85), Color(1.0, 0.6, 0.2))
 	barra_habilidad.anchor_top = 1.0
@@ -310,6 +320,10 @@ func ocultar_jefe() -> void:
 
 func mostrar_pausa(activa: bool) -> void:
 	etiqueta_pausa.visible = activa
+
+
+func set_pulso_umbral(activo: bool) -> void:
+	_lbl_pulso.visible = activo
 
 
 func actualizar_reliquias(ids: Array) -> void:
