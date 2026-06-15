@@ -37,14 +37,14 @@ const NODOS_GLOBAL := [
 		"id": "xp_global",
 		"nombre": "Mente Ávida",
 		"desc": "+10% experiencia ganada por nivel",
-		"max": 2, "costos": [1, 2],
+		"max": 2, "costos": [2, 3],
 		"stat": "xp_pct", "valor_por_nivel": 10.0,
 	},
 	{
 		"id": "radio_global",
 		"nombre": "Campo Imantado",
 		"desc": "+20% radio de recolección por nivel",
-		"max": 2, "costos": [1, 2],
+		"max": 2, "costos": [1, 3],
 		"stat": "radio_iman_pct", "valor_por_nivel": 20.0,
 	},
 ]
@@ -53,8 +53,8 @@ const NODOS_CLASE := {
 	"guerrero": [
 		{
 			"id": "gue_aguante", "nombre": "Aguante Brutal",
-			"desc": "+12% vida máxima", "max": 3, "costos": [1, 2, 3],
-			"stat": "vida_max_pct", "valor_por_nivel": 12.0,
+			"desc": "+10% vida máxima", "max": 3, "costos": [1, 2, 3],
+			"stat": "vida_max_pct", "valor_por_nivel": 10.0,
 		},
 		{
 			"id": "gue_furia", "nombre": "Furia Melee",
@@ -63,8 +63,8 @@ const NODOS_CLASE := {
 		},
 		{
 			"id": "gue_armadura", "nombre": "Piel de Acero",
-			"desc": "+8 armadura por nivel", "max": 2, "costos": [2, 3],
-			"stat": "armadura", "valor_por_nivel": 8.0,
+			"desc": "+3 armadura por nivel", "max": 2, "costos": [2, 3],
+			"stat": "armadura", "valor_por_nivel": 3.0,
 		},
 	],
 	"arquero": [
@@ -87,13 +87,13 @@ const NODOS_CLASE := {
 	"mago": [
 		{
 			"id": "mag_potencia", "nombre": "Potencia Arcana",
-			"desc": "+15% daño global", "max": 3, "costos": [1, 2, 3],
-			"stat": "dano_pct", "valor_por_nivel": 15.0,
+			"desc": "+10% daño global", "max": 3, "costos": [1, 2, 3],
+			"stat": "dano_pct", "valor_por_nivel": 10.0,
 		},
 		{
 			"id": "mag_sabiduria", "nombre": "Sabiduría Antigua",
-			"desc": "+12% experiencia ganada", "max": 2, "costos": [1, 2],
-			"stat": "xp_pct", "valor_por_nivel": 12.0,
+			"desc": "+8% experiencia ganada", "max": 2, "costos": [1, 2],
+			"stat": "xp_pct", "valor_por_nivel": 8.0,
 		},
 		{
 			"id": "mag_critico", "nombre": "Resonancia Mágica",
@@ -138,8 +138,8 @@ const NODOS_CLASE := {
 	"paladin": [
 		{
 			"id": "pal_armadura", "nombre": "Fortaleza Sagrada",
-			"desc": "+10 armadura por nivel", "max": 3, "costos": [1, 2, 3],
-			"stat": "armadura", "valor_por_nivel": 10.0,
+			"desc": "+4 armadura por nivel", "max": 3, "costos": [1, 2, 3],
+			"stat": "armadura", "valor_por_nivel": 4.0,
 		},
 		{
 			"id": "pal_regen", "nombre": "Gracia Divina",
@@ -148,8 +148,8 @@ const NODOS_CLASE := {
 		},
 		{
 			"id": "pal_vida", "nombre": "Escudo de Fe",
-			"desc": "+8% vida máxima", "max": 2, "costos": [2, 3],
-			"stat": "vida_max_pct", "valor_por_nivel": 8.0,
+			"desc": "+6% vida máxima", "max": 2, "costos": [2, 3],
+			"stat": "vida_max_pct", "valor_por_nivel": 6.0,
 		},
 	],
 }
