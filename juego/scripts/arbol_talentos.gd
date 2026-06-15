@@ -121,8 +121,8 @@ const NODOS_CLASE := {
 	"asesino": [
 		{
 			"id": "ase_critico", "nombre": "Instinto Asesino",
-			"desc": "+7% probabilidad de crítico", "max": 3, "costos": [1, 2, 3],
-			"stat": "critico_pct", "valor_por_nivel": 7.0,
+			"desc": "+5% probabilidad de crítico", "max": 3, "costos": [1, 2, 3],
+			"stat": "critico_pct", "valor_por_nivel": 5.0,
 		},
 		{
 			"id": "ase_distancia", "nombre": "Golpe Mortal",
