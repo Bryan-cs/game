@@ -22,7 +22,7 @@ func _process(delta: float) -> void:
 	var enemigos := get_tree().get_nodes_in_group("enemigos")
 	if enemigos.is_empty():
 		return
-	_cd = maxf(0.45, 0.9 - 0.05 * nivel)
+	_cd = maxf(0.10, (0.9 - 0.05 * nivel) / jugador.stats.mult_cadencia())
 	var cantidad := 5 if evolucionada else 2
 	for i in cantidad:
 		var objetivo: Node3D = enemigos.pick_random()

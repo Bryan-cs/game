@@ -99,7 +99,7 @@ func _process(delta: float) -> void:
 	_tick -= delta
 	if _tick > 0.0:
 		return
-	_tick = INTERVALO_DANO
+	_tick = INTERVALO_DANO / jugador.stats.mult_cadencia()
 	var alcance := RADIO_ORBITA + (1.4 if evolucionada else 0.9)
 	var base := (8.0 + 3.5 * nivel) * mult_forja
 	if evolucionada:

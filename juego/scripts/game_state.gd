@@ -6,7 +6,8 @@ signal logro_completado(nombre: String)
 signal mision_completada(nombre: String)
 
 const RUTA_GUARDADO := "user://nightfall_save.json"
-const EquipamientoScript := preload("res://scripts/equipamiento.gd")
+const EquipamientoScript    := preload("res://scripts/equipamiento.gd")
+const ArbolTalentosScript   := preload("res://scripts/arbol_talentos.gd")
 
 var oro_total := 0
 var gemas := 0
@@ -156,7 +157,7 @@ func comprar_talento(clave: String) -> bool:
 # --- Árbol de Talentos --------------------------------------------------------
 
 func comprar_nodo_arbol(id: String) -> bool:
-	var nodo: Dictionary = ArbolTalentos.nodo_por_id(id)
+	var nodo: Dictionary = ArbolTalentosScript.nodo_por_id(id)
 	if nodo.is_empty():
 		return false
 	var nivel_actual: int = int(arbol_nodos.get(id, 0))

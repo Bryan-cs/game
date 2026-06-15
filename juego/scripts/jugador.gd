@@ -11,8 +11,9 @@ signal cooldowns_cambiados(nova: float, dash: float, hab1: float, hab2: float)
 signal corrupcion_cambiada(valor: float)
 signal invoco_aliados(cantidad: int)
 
-const ProyectilScript := preload("res://scripts/proyectil.gd")
-const HojaStatsScript := preload("res://scripts/stats.gd")
+const ProyectilScript     := preload("res://scripts/proyectil.gd")
+const HojaStatsScript     := preload("res://scripts/stats.gd")
+const ArbolTalentosScript := preload("res://scripts/arbol_talentos.gd")
 
 const CLASES := {
 	"guerrero":   {"nombre": "Guerrero",   "vida": 130.0, "velocidad": 5.0,  "mult_dano": 1.15, "critico": 0.05, "mult_critico": 1.8, "regen": 0.0, "arma": "espada", "color": Color(0.85, 0.3, 0.25), "desc": "Espadón: tajo cuerpo a cuerpo · +15% daño"},
@@ -356,8 +357,8 @@ func _aplicar_arbol_talentos() -> void:
 	var arbol: Dictionary = _estado.arbol_nodos
 	if arbol.is_empty():
 		return
-	_aplicar_lista_nodos_arbol(ArbolTalentos.NODOS_GLOBAL, arbol)
-	_aplicar_lista_nodos_arbol(ArbolTalentos.NODOS_CLASE.get(clase, []), arbol)
+	_aplicar_lista_nodos_arbol(ArbolTalentosScript.NODOS_GLOBAL, arbol)
+	_aplicar_lista_nodos_arbol(ArbolTalentosScript.NODOS_CLASE.get(clase, []), arbol)
 
 
 func _aplicar_lista_nodos_arbol(lista: Array, arbol: Dictionary) -> void:

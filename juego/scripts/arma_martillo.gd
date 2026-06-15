@@ -20,7 +20,7 @@ func _process(delta: float) -> void:
 	var objetivo := _enemigo_mas_cercano()
 	if objetivo == null or objetivo.global_position.distance_to(jugador.global_position) > 11.0:
 		return
-	_cd = maxf(1.4, 3.0 - 0.15 * nivel)
+	_cd = maxf(0.40, (3.0 - 0.15 * nivel) / jugador.stats.mult_cadencia())
 	_golpe_sismico(objetivo.global_position, 1.0)
 	if evolucionada:
 		for k in 2:

@@ -22,7 +22,7 @@ func _process(delta: float) -> void:
 	var objetivo := _enemigo_mas_cercano()
 	if objetivo == null:
 		return
-	_cd = maxf(0.9, 2.6 - 0.15 * nivel)
+	_cd = maxf(0.25, (2.6 - 0.15 * nivel) / jugador.stats.mult_cadencia())
 	var direccion := objetivo.global_position - jugador.global_position
 	direccion.y = 0.0
 	if direccion.length() < 0.1:

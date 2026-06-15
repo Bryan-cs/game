@@ -20,7 +20,7 @@ func _process(delta: float) -> void:
 	var objetivo := _enemigo_mas_cercano()
 	if objetivo == null or objetivo.global_position.distance_to(jugador.global_position) > 12.0:
 		return
-	_cd = maxf(0.6, 1.6 - 0.1 * nivel)
+	_cd = maxf(0.15, (1.6 - 0.1 * nivel) / jugador.stats.mult_cadencia())
 	var saltos := 2 + nivel / 2
 	if evolucionada:
 		saltos *= 2

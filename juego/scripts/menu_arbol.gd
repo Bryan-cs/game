@@ -3,6 +3,7 @@ extends CanvasLayer
 ## Dos ramas: GLOBAL (todas las runs) y POR CLASE (solo su clase).
 ## Los Libros de Talento recogidos en partida se gastan aquí entre runs.
 
+const ArbolTalentosScript := preload("res://scripts/arbol_talentos.gd")
 const CLASES := ["guerrero", "arquero", "mago", "nigromante", "asesino", "paladin"]
 
 var _estado: Node
@@ -104,10 +105,10 @@ func _reconstruir() -> void:
 	for h in _caja_nodos.get_children():
 		h.queue_free()
 	if _rama == "global":
-		_construir_nodos(ArbolTalentos.NODOS_GLOBAL)
+		_construir_nodos(ArbolTalentosScript.NODOS_GLOBAL)
 	else:
 		_construir_selector_clase()
-		_construir_nodos(ArbolTalentos.NODOS_CLASE.get(_clase_sel, []))
+		_construir_nodos(ArbolTalentosScript.NODOS_CLASE.get(_clase_sel, []))
 
 
 func _construir_selector_clase() -> void:
